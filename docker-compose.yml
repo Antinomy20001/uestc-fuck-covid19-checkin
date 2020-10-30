@@ -1,0 +1,40 @@
+version: "3"
+
+services:
+  fuck-checkin-redis:
+    image: redis:alpine
+    container_name: fuck-checkin-redis
+    restart: always
+    volumes:
+      - ./data/redis:/data
+
+  fuck-checkin-app:
+    image: registry.cn-chengdu.aliyuncs.com/antinomy20001/uestc-fuck-covid19-checkin
+    container_name: fuck-checkin-app
+    restart: always
+    read_only: true
+    depends_on:
+      - fuck-checkin-redis
+    command: uvicorn app:app --reload --host 0.0.0.0 --port 8000
+
+  fuck-checkin-scheduler:
+    image: registry.cn-chengdu.aliyuncs.com/antinomy20001/uestc-fuck-covid19-checkin
+    container_name: fuck-checkin-scheduler
+    restart: always
+    volumes:
+      - ./data/scheduler:/data
+    depends_on:
+      - fuck-checkin-redis
+    command: python3 scheduler.py
+
+  fuck-checkin-proxy:
+    image: registry.cn-chengdu.aliyuncs.com/antinomy20001/uestc-fuck-covid19-checkin
+    container_name: fuck-checkin-proxy
+    restart: always
+    depends_on:
+      - fuck-checkin-redis
+      - fuck-checkin-app
+      - fuck-checkin-scheduler
+    ports:
+      - "0.0.0.0:11455:3000"
+    command: node proxy.js
