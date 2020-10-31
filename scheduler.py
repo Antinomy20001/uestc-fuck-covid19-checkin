@@ -15,11 +15,11 @@ async def fuck_job():
     redis = aioredis.Redis(pool_or_conn=connection)
     cookies = [get_with_uuid(redis, key) for key in (await redis.keys('fuck-*'))]
 
-    results = [work(uuid, cookie) for (uuid, cookie) in (await asyncio.gather(*cookies))]
-    result = await asyncio.gather(*results)
+    result = [(await work(uuid, cookie)) for (uuid, cookie) in (await asyncio.gather(*cookies))]
+    
 
-    failed = filter(lambda x: not x[1], result)
-    delete_tasks = await asyncio.gather(*[redis.delete(f"fuck-{fail[0]}") for fail in failed])
+#    failed = filter(lambda x: not x[1], result)
+#    delete_tasks = await asyncio.gather(*[redis.delete(f"fuck-{fail[0]}") for fail in failed])
     result = list(filter(lambda x: x[1], result))
 
     print(result)
