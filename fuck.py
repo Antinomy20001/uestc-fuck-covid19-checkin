@@ -29,20 +29,36 @@ def convert_headers(string):
     return dict(string)
 
 
+async def get_userid(origin_index_cookie):
+    result = False
+    async with aiohttp.ClientSession() as session:
+        cookie = SimpleCookie()
+        cookie.load(origin_index_cookie)
+        headers['Cookie'] = cookie.output(header='', sep=';')[1:]
+
+        async with session.get(f'http://eportal.uestc.edu.cn/jsonp/userDesktopInfo.json?type=&_={int(time.time() * 1000)}', headers=headers, allow_redirects=False) as response:
+            response_json = await response.json()
+            result = response_json['userId']
+
+    return result
+
+
 async def daily_fuck_checkin(session, origin_index_cookie):
     cookie = SimpleCookie()
     cookie.load(origin_index_cookie)
     headers['Cookie'] = cookie.output(header='', sep=';')[1:]
     results = []
+    try:
+        userid = await get_userid(origin_index_cookie)
+    except Exception:
+        return False
 
-    async with session.get(f'http://eportal.uestc.edu.cn/jsonp/userDesktopInfo.json?type=&_={int(time.time() * 1000)}', headers=headers, allow_redirects=False) as response:
-        response_json = await response.json()
-        results.append(response_json['userId'])
-        data = {
-            'USER_ID': response_json['userId'],
-            'pageSize': '1',
-            'pageNumber': '1',
-        }
+    data = {
+        'USER_ID': userid,
+        'pageSize': '1',
+        'pageNumber': '1',
+    }
+    results.append(userid)
 
     async with session.get(url='http://eportal.uestc.edu.cn/appShow?appId=5807167997450437', headers=headers, allow_redirects=False) as response:
         headers['Cookie'] = update_cookie(response.headers, cookie)
@@ -59,9 +75,11 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/getMyTodayReportWid.do', headers=headers, data=data) as response:
         data = await response.json()
 
-    now = datetime.datetime.now()
-
     data = data['datas']['getMyTodayReportWid']['rows'][0]
+
+    now = datetime.datetime.now()
+    last_daily_date = datetime.datetime.strptime(data['CZRQ'], "%Y-%m-%d")
+
     data["PERSON_TYPE"] = "001"
     data["LOCATION_PROVINCE_CODE"] = "510000"
     data["LOCATION_CITY_CODE"] = "510100"
@@ -102,9 +120,10 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     data["MEMBER_HEALTH_STATUS_CODE_DISPLAY"] = "正常"
     data["MEMBER_HEALTH_UNSUAL_CODE_DISPLAY"] = ""
 
-    async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_YJS_SAVE.do', headers=headers, data=data) as response:
-        response_json = await response.json()
-        results.append(response_json)
+    if now.day != last_daily_date.day or now - last_daily_date > datetime.timedelta(days=1):
+        async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_YJS_SAVE.do', headers=headers, data=data) as response:
+            response_json = await response.json()
+            results.append(response_json)
 
     if now.day != last_report_date.day or now - last_report_date > datetime.timedelta(days=1):
         for i, period in enumerate(['早上', '中午', '晚上']):
@@ -125,7 +144,7 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     return results
 
 
-async def work(uuid, origin_index_cookie):
+async def work(userid, origin_index_cookie):
     async with aiohttp.ClientSession() as session:
         result = False
         try:
@@ -135,4 +154,4 @@ async def work(uuid, origin_index_cookie):
             )
         except Exception as e:
             pass
-        return (uuid, result)
+        return (userid, result)

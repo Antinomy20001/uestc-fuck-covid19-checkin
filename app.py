@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from fuck import work
+from fuck import work, get_userid
 import aioredis
 import uuid
 
@@ -25,9 +25,14 @@ class OriginIndexCookie(BaseModel):
 
 
 async def to_redis(origin_index_cookie):
+    try:
+        userid = await get_userid(origin_index_cookie)
+    except Exception:
+        return False
+
     connection = await aioredis.create_redis_pool('redis://fuck-checkin-redis:6379', encoding='utf-8')
     redis = aioredis.Redis(pool_or_conn=connection)
-    result = await redis.set(f'fuck-{str(uuid.uuid4().hex)}', origin_index_cookie)
+    result = await redis.set(f'fuck-{userid}', origin_index_cookie)
     redis.close()
     await redis.wait_closed()
     return result
