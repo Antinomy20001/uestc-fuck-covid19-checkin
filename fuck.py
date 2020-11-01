@@ -50,7 +50,8 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     results = []
     try:
         userid = await get_userid(origin_index_cookie)
-    except Exception:
+    except Exception as e:
+        print(str(e))                      
         return False
 
     data = {
