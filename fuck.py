@@ -79,7 +79,7 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     data = data['datas']['getMyTodayReportWid']['rows'][0]
 
     now = datetime.datetime.now()
-    last_daily_date = datetime.datetime.strptime(data['CZRQ'], "%Y-%m-%d")
+    last_daily_date = datetime.datetime.strptime(data['CZRQ'], "%Y-%m-%d %H:%M:%S")
 
     data["PERSON_TYPE"] = "001"
     data["LOCATION_PROVINCE_CODE"] = "510000"
@@ -157,5 +157,6 @@ async def work(userid, origin_index_cookie):
                 origin_index_cookie=origin_index_cookie
             )
         except Exception as e:
+            print(str(e))
             pass
         return (userid, result)
