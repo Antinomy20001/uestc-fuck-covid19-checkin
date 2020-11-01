@@ -20,7 +20,7 @@ async def fuck_job():
 
 #    failed = filter(lambda x: not x[1], result)
 #    delete_tasks = await asyncio.gather(*[redis.delete(f"fuck-{fail[0]}") for fail in failed])
-    result = list(filter(lambda x: x[1], result))
+#    result = list(filter(lambda x: x[1], result))
 
     redis.close()
     await redis.wait_closed()
