@@ -3,7 +3,7 @@ from fuck import work
 import aioredis
 import asyncio
 import sys
-
+import os
 
 async def get_with_userid(redis, key):
     result = await redis.get(key)
@@ -35,8 +35,10 @@ async def fuck_job():
             f.write('\n')
 
 if __name__ == "__main__":
+    INTERVAL = int(os.environ.get('SCHEDULER_INTERVAL', 15))
+    
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(func=fuck_job, trigger='interval', seconds=30)
+    scheduler.add_job(func=fuck_job, trigger='interval', seconds=INTERVAL)
     scheduler.start()
     print("Scheduler Starting...")
     try:
