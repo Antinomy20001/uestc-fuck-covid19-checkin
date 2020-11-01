@@ -124,6 +124,8 @@ async def daily_fuck_checkin(session, origin_index_cookie):
         async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_YJS_SAVE.do', headers=headers, data=data) as response:
             response_json = await response.json()
             results.append(response_json)
+    else:
+        results.append(f'{userid} Daily Report Completed')
 
     if now.day != last_report_date.day or now - last_report_date > datetime.timedelta(days=1):
         for i, period in enumerate(['早上', '中午', '晚上']):
@@ -140,7 +142,8 @@ async def daily_fuck_checkin(session, origin_index_cookie):
             async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/tempReport/T_REPORT_TEMPERATURE_YJS_SAVE.do', headers=headers, data=data) as response:
                 response_json = await response.json()
             results.append(response_json)
-
+    else:
+        results.append(f'{userid} Temperature Report Completed')
     return results
 
 

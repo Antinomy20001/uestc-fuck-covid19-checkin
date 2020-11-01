@@ -25,6 +25,8 @@ services:
       - ./data/scheduler:/data
     depends_on:
       - fuck-checkin-redis
+    environment:
+      - SCHEDULER_INTERVAL=10
     command: python3 scheduler.py
 
   fuck-checkin-proxy:
