@@ -24,8 +24,12 @@ async def fuck_job():
 
     redis.close()
     await redis.wait_closed()
-
-    print(result)
+    
+    if len(result) == 0:
+        print(result)
+    else:
+        for line in result:
+            print(line)
     sys.stdout.flush()
 
     with open('/data/scheduler.log.txt', 'a') as f:
