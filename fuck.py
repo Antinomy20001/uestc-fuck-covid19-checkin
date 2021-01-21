@@ -36,7 +36,7 @@ async def get_userid(origin_index_cookie):
         cookie.load(origin_index_cookie)
         headers['Cookie'] = cookie.output(header='', sep=';')[1:]
 
-        async with session.get(f'http://eportal.uestc.edu.cn/jsonp/userDesktopInfo.json?type=&_={int(time.time() * 1000)}', headers=headers, allow_redirects=False) as response:
+        async with session.get(f'https://eportal.uestc.edu.cn/jsonp/userDesktopInfo.json?type=&_={int(time.time() * 1000)}', headers=headers, allow_redirects=False) as response:
             response_json = await response.json()
             result = response_json['userId']
 
@@ -61,19 +61,19 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     }
     results.append(userid)
 
-    async with session.get(url='http://eportal.uestc.edu.cn/appShow?appId=5807167997450437', headers=headers, allow_redirects=False) as response:
+    async with session.get(url='https://eportal.uestc.edu.cn/appShow?appId=5807167997450437', headers=headers, allow_redirects=False) as response:
         headers['Cookie'] = update_cookie(response.headers, cookie)
         url = response.headers['Location']
 
     async with session.get(url=url, allow_redirects=False, headers=headers) as response:
         headers['Cookie'] = update_cookie(response.headers, cookie)
 
-    async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/tempReport/T_REPORT_TEMPERATURE_YJS_QUERY.do', headers=headers, data=data) as temperature_response:
+    async with session.post(url='https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/tempReport/T_REPORT_TEMPERATURE_YJS_QUERY.do', headers=headers, data=data) as temperature_response:
         temperature_response_json = await temperature_response.json()
         last_report_date = temperature_response_json['datas']['T_REPORT_TEMPERATURE_YJS_QUERY']['rows'][0]['NEED_DATE']
         last_report_date = datetime.datetime.strptime(last_report_date, "%Y-%m-%d")
 
-    async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/getMyTodayReportWid.do', headers=headers, data=data) as response:
+    async with session.post(url='https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/getMyTodayReportWid.do', headers=headers, data=data) as response:
         data = await response.json()
 
     data = data['datas']['getMyTodayReportWid']['rows'][0]
@@ -122,7 +122,7 @@ async def daily_fuck_checkin(session, origin_index_cookie):
     data["MEMBER_HEALTH_UNSUAL_CODE_DISPLAY"] = ""
 
     if now.day != last_daily_date.day or now - last_daily_date > datetime.timedelta(days=1):
-        async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_YJS_SAVE.do', headers=headers, data=data) as response:
+        async with session.post(url='https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/dailyReport/T_REPORT_EPIDEMIC_CHECKIN_YJS_SAVE.do', headers=headers, data=data) as response:
             response_json = await response.json()
             results.append(response_json)
     else:
@@ -140,7 +140,7 @@ async def daily_fuck_checkin(session, origin_index_cookie):
             data['TEMPERATURE'] = random.choice([f'36.{_}' for _ in range(1, 10)])
             data['CREATED_AT'] = now.strftime("%Y-%m-%d %H:%M:%S")
 
-            async with session.post(url='http://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/tempReport/T_REPORT_TEMPERATURE_YJS_SAVE.do', headers=headers, data=data) as response:
+            async with session.post(url='https://eportal.uestc.edu.cn/jkdkapp/sys/lwReportEpidemicStu/modules/tempReport/T_REPORT_TEMPERATURE_YJS_SAVE.do', headers=headers, data=data) as response:
                 response_json = await response.json()
             results.append(response_json)
     else:

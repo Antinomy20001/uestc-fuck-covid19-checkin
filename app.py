@@ -40,6 +40,7 @@ async def to_redis(origin_index_cookie):
 
 @app.post("/origin_index_cookie/")
 async def main(origin_index_cookie: OriginIndexCookie):
+    print(f"get cookies: {origin_index_cookie.cookie}")
     result = await to_redis(origin_index_cookie.cookie)
     print(result)
     return origin_index_cookie
